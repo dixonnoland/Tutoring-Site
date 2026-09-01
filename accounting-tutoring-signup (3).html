@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accounting I Tutoring — UGA</title>
+<style>
+  :root{
+    --paper:#FAF7EF;
+    --paper-dim:#F1ECDF;
+    --ink:#211F1C;
+    --ink-soft:#5B5648;
+    --rule:#D9D0BB;
+    --uga-red:#BA0C2F;
+    --uga-red-dark:#8F0924;
+    --ledger-green:#3B5D42;
+    --ledger-green-bg:#E7EEE6;
+    --full-bg:#F3E7E4;
+    --full-text:#9C3B2A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-variant-numeric:tabular-nums;
+    line-height:1.5;
+  }
+  h1,h2,h3{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px 80px;}
+
+  /* ---- Hero / ledger cover ---- */
+  .cover{
+    background:var(--ink);
+    color:var(--paper);
+    padding:56px 24px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cover-inner{max-width:760px;margin:0 auto;position:relative;z-index:2;}
+  .cover .eyebrow-row{
+    display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:1px solid rgba(250,247,239,0.25);
+    padding-bottom:14px;margin-bottom:28px;
+    font-size:13px;letter-spacing:0.02em;color:rgba(250,247,239,0.6);
+  }
+  .cover h1{
+    color:var(--paper);
+    font-size:44px;
+    line-height:1.08;
+    max-width:11ch;
+  }
+  .cover .sub{
+    margin-top:14px;
+    font-size:16px;
+    color:rgba(250,247,239,0.75);
+    max-width:44ch;
+  }
+  .t-account{
+    position:absolute;
+    right:-30px;
+    top:20px;
+    width:230px;
+    height:230px;
+    opacity:0.14;
+    z-index:1;
+  }
+  .t-account svg{width:100%;height:100%;}
+
+  /* ---- Tabs ---- */
+  .tabs{
+    display:flex;
+    border-bottom:1px solid var(--rule);
+    margin-top:36px;
+  }
+  .tab-btn{
+    font-family:inherit;
+    background:none;border:none;
+    padding:14px 4px;
+    margin-right:28px;
+    font-size:15px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    position:relative;top:1px;
+  }
+  .tab-btn.active{
+    color:var(--ink);
+    border-bottom:2px solid var(--uga-red);
+    font-weight:600;
+  }
+
+  /* ---- Date group ---- */
+  .date-group{margin-top:34px;}
+  .date-heading{
+    font-size:13px;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--rule);
+    padding-bottom:8px;
+    margin-bottom:2px;
+    display:flex;justify-content:space-between;
+  }
+
+  .slot-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .slot-time{
+    font-size:17px;
+    font-weight:600;
+    min-width:88px;
+  }
+  .slot-mid{flex:1;min-width:0;}
+  .slot-type{
+    display:inline-block;
+    font-size:12px;
+    padding:2px 8px;
+    border-radius:3px;
+    background:var(--paper-dim);
+    color:var(--ink-soft);
+    margin-right:8px;
+  }
+  .slot-cap{
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .slot-cap.full{color:var(--full-text);font-weight:600;}
+  .slot-cap.open{color:var(--ledger-green);font-weight:600;}
+  .slot-action{flex-shrink:0;}
+
+  button.reserve{
+    font-family:inherit;
+    background:var(--uga-red);
+    color:var(--paper);
+    border:none;
+    padding:9px 16px;
+    font-size:14px;
+    font-weight:600;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  button.reserve:hover{background:var(--uga-red-dark);}
+  button.reserve:disabled{
+    background:var(--paper-dim);
+    color:var(--ink-soft);
+    cursor:default;
+  }
+  button.link-btn{
+    font-family:inherit;
+    background:none;border:none;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    font-size:13px;
+    padding:0;
+  }
+  button.secondary{
+    font-family:inherit;
+    background:var(--paper);
+    border:1px solid var(--ink);
+    color:var(--ink);
+    padding:9px 16px;
+    font-size:14px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  button.secondary:hover{background:var(--paper-dim);}
+
+  /* ---- Booking form (inline expand) ---- */
+  .book-form{
+    margin-top:14px;
+    padding:16px;
+    background:var(--paper-dim);
+    border-radius:4px;
+  }
+  .book-form label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .book-form input{
+    width:100%;
+    font-family:inherit;
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--rule);
+    border-radius:3px;
+    background:var(--paper);
+    color:var(--ink);
+    margin-bottom:12px;
+  }
+  .book-form input:focus{outline:2px solid var(--uga-red);outline-offset:1px;}
+  .form-actions{display:flex;gap:10px;}
+  .form-error{color:var(--full-text);font-size:13px;margin:-4px 0 12px;}
+
+  .confirm-banner{
+    margin-top:14px;
+    padding:12px 14px;
+    background:var(--ledger-green-bg);
+    color:var(--ledger-green);
+    border-radius:4px;
+    font-size:14px;
+  }
+
+  .empty-state{
+    padding:40px 0;
+    color:var(--ink-soft);
+    font-size:15px;
+  }
+
+  /* ---- Admin ---- */
+  .admin-gate{
+    margin-top:40px;
+    padding:24px;
+    background:var(--paper-dim);
+    border-radius:4px;
+    max-width:360px;
+  }
+  .admin-gate label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
+  .admin-gate input{
+    width:100%;font-family:inherit;font-size:14px;padding:9px 10px;
+    border:1px solid var(--rule);border-radius:3px;margin-bottom:10px;background:var(--paper);
+  }
+
+  .admin-add{
+    margin-top:34px;
+    padding:20px;
+    border:1px solid var(--rule);
+    border-radius:4px;
+  }
+  .admin-add h3{font-size:15px;margin-bottom:14px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .admin-add label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
+  .admin-add input,.admin-add select{
+    width:100%;font-family:inherit;font-size:14px;padding:9px 10px;
+    border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink);
+    margin-bottom:12px;
+  }
+
+  .roster{margin-top:8px;padding-left:0;list-style:none;font-size:13px;color:var(--ink-soft);}
+  .roster li{
+    display:flex;justify-content:space-between;
+    padding:4px 0;
+    border-bottom:1px dashed var(--rule);
+  }
+  .roster li button{
+    font-family:inherit;background:none;border:none;color:var(--full-text);
+    cursor:pointer;font-size:12px;text-decoration:underline;
+  }
+  .slot-admin-row{
+    padding:14px 0;border-bottom:1px solid var(--rule);
+  }
+  .slot-admin-head{
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .delete-slot{
+    font-family:inherit;background:none;border:none;color:var(--full-text);
+    cursor:pointer;font-size:13px;text-decoration:underline;
+  }
+
+  .top-note{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .loading{padding:40px 0;color:var(--ink-soft);font-size:14px;}
+  .footer-note{margin-top:48px;font-size:12px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:16px;}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="t-account" aria-hidden="true">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="30" x2="180" y2="30" stroke="#FAF7EF" stroke-width="4"/>
+      <line x1="100" y1="30" x2="100" y2="180" stroke="#FAF7EF" stroke-width="4"/>
+    </svg>
+  </div>
+  <div class="cover-inner">
+    <div class="eyebrow-row">
+      <span>University of Georgia</span>
+      <span>Terry College of Business</span>
+    </div>
+    <h1>Accounting I Tutoring</h1>
+    <p class="sub">Reserve a solo or group session with a peer tutor. Seats are limited — book ahead of exams and problem sets.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-book" onclick="setView('book')">Book a session</button>
+    <button class="tab-btn" id="tab-admin" onclick="setView('admin')">Tutor admin</button>
+  </div>
+
+  <div id="view-book"></div>
+  <div id="view-admin" style="display:none;"></div>
+
+  <div class="footer-note">Sessions and sign-ups are shared and visible to everyone using this page.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDSkUscRWhLYtbPIO3h_8peChALJqrEbko",
+  authDomain: "acct-tutoring-website.firebaseapp.com",
+  projectId: "acct-tutoring-website",
+  storageBucket: "acct-tutoring-website.firebasestorage.app",
+  messagingSenderId: "953660268559",
+  appId: "1:953660268559:web:3d4dae6cf0d9b5c764c37a"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const scheduleDocRef = db.collection('tutoring').doc('schedule');
+
+const STORAGE_KEY = 'tutoring-schedule';
+const ADMIN_PASSCODE = 'accting1'; // change this in the code if you want a different passcode
+let schedule = { slots: [] };
+let currentView = 'book';
+let isAdmin = false;
+let openBookingSlotId = null;
+let expandedRosterId = null;
+
+function uid(){
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+}
+
+async function loadSchedule(){
+  try{
+    const docSnap = await scheduleDocRef.get();
+    schedule = (docSnap.exists && docSnap.data() && docSnap.data().slots) ? docSnap.data() : { slots: [] };
+  }catch(e){
+    console.error('Failed to load schedule:', e);
+    schedule = { slots: [] };
+  }
+}
+
+async function saveSchedule(){
+  await scheduleDocRef.set(schedule);
+}
+
+function formatDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  if(isNaN(d)) return dateStr;
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+}
+
+function formatTime(t){
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+function sortedSlots(){
+  return [...schedule.slots].sort((a,b)=>{
+    if(a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return a.time < b.time ? -1 : 1;
+  });
+}
+
+function groupByDate(slots){
+  const groups = {};
+  slots.forEach(s=>{
+    if(!groups[s.date]) groups[s.date] = [];
+    groups[s.date].push(s);
+  });
+  return groups;
+}
+
+function setView(v){
+  currentView = v;
+  document.getElementById('tab-book').classList.toggle('active', v==='book');
+  document.getElementById('tab-admin').classList.toggle('active', v==='admin');
+  document.getElementById('view-book').style.display = v==='book' ? '' : 'none';
+  document.getElementById('view-admin').style.display = v==='admin' ? '' : 'none';
+  render();
+}
+
+function esc(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderBookView(){
+  const el = document.getElementById('view-book');
+  const slots = sortedSlots();
+  if(slots.length === 0){
+    el.innerHTML = `<div class="empty-state">No sessions posted yet. Check back soon, or ask your tutor to add times under Tutor admin.</div>`;
+    return;
+  }
+  const groups = groupByDate(slots);
+  let html = '';
+  Object.keys(groups).sort().forEach(date=>{
+    html += `<div class="date-group">
+      <div class="date-heading"><span>${formatDate(date)}</span></div>`;
+    groups[date].forEach(slot=>{
+      const filled = slot.signups.length;
+      const cap = slot.capacity;
+      const isFull = filled >= cap;
+      const typeLabel = slot.type === 'solo' ? 'Solo' : 'Group';
+      html += `<div class="slot-row">
+        <div class="slot-time">${formatTime(slot.time)}</div>
+        <div class="slot-mid">
+          <span class="slot-type">${typeLabel}</span>
+          <span class="slot-cap ${isFull ? 'full':'open'}">${filled}/${cap} spot${cap===1?'':'s'} filled</span>
+        </div>
+        <div class="slot-action">
+          <button class="reserve" ${isFull?'disabled':''} onclick="toggleBookingForm('${slot.id}')">
+            ${isFull ? 'Full' : (openBookingSlotId===slot.id ? 'Cancel' : 'Reserve')}
+          </button>
+        </div>
+      </div>`;
+      if(openBookingSlotId === slot.id){
+        html += `<div class="book-form">
+          <label for="name-${slot.id}">Full name</label>
+          <input id="name-${slot.id}" placeholder="Your name" />
+          <label for="email-${slot.id}">UGA email</label>
+          <input id="email-${slot.id}" placeholder="you@uga.edu" />
+          <div id="err-${slot.id}" class="form-error" style="display:none;"></div>
+          <div class="form-actions">
+            <button class="reserve" onclick="submitBooking('${slot.id}')">Confirm reservation</button>
+            <button class="secondary" onclick="toggleBookingForm('${slot.id}')">Cancel</button>
+          </div>
+        </div>`;
+      }
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html;
+}
+
+function toggleBookingForm(slotId){
+  openBookingSlotId = (openBookingSlotId === slotId) ? null : slotId;
+  renderBookView();
+}
+
+async function submitBooking(slotId){
+  const nameInput = document.getElementById(`name-${slotId}`);
+  const emailInput = document.getElementById(`email-${slotId}`);
+  const errEl = document.getElementById(`err-${slotId}`);
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  if(!name || !email){
+    errEl.textContent = 'Please enter your name and email.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(!/^\S+@\S+\.\S+$/.test(email)){
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  await loadSchedule();
+  const slot = schedule.slots.find(s=>s.id===slotId);
+  if(!slot){
+    errEl.textContent = 'This session no longer exists. Refreshing...';
+    errEl.style.display = 'block';
+    openBookingSlotId = null;
+    renderBookView();
+    return;
+  }
+  if(slot.signups.length >= slot.capacity){
+    errEl.textContent = 'This session just filled up. Please pick another time.';
+    errEl.style.display = 'block';
+    renderBookView();
+    return;
+  }
+  if(slot.signups.some(s=>s.email.toLowerCase() === email.toLowerCase())){
+    errEl.textContent = "You're already signed up for this session.";
+    errEl.style.display = 'block';
+    return;
+  }
+
+  slot.signups.push({ name, email });
+  try{
+    await saveSchedule();
+  }catch(e){
+    errEl.textContent = 'Something went wrong saving your reservation. Please try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+  openBookingSlotId = null;
+  renderBookView();
+  const groupEl = document.getElementById('view-book');
+  const banner = document.createElement('div');
+  banner.className = 'confirm-banner';
+  banner.textContent = `You're booked for ${formatDate(slot.date)} at ${formatTime(slot.time)}.`;
+  groupEl.prepend(banner);
+  setTimeout(()=>{ banner.remove(); }, 5000);
+}
+
+// ---------- Admin ----------
+
+function renderAdminView(){
+  const el = document.getElementById('view-admin');
+  if(!isAdmin){
+    el.innerHTML = `<div class="admin-gate">
+      <h3 style="margin-bottom:14px;font-size:16px;">Tutor sign-in</h3>
+      <label for="passcode">Passcode</label>
+      <input id="passcode" type="password" placeholder="Enter passcode" />
+      <div id="admin-err" class="form-error" style="display:none;">Incorrect passcode.</div>
+      <button class="reserve" onclick="tryAdminLogin()">Sign in</button>
+    </div>`;
+    return;
+  }
+
+  const slots = sortedSlots();
+  let html = `<div class="admin-add">
+    <h3>Add a session</h3>
+    <div class="grid-2">
+      <div>
+        <label for="new-date">Date</label>
+        <input id="new-date" type="date" />
+      </div>
+      <div>
+        <label for="new-time">Time</label>
+        <input id="new-time" type="time" />
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label for="new-type">Session type</label>
+        <select id="new-type" onchange="onTypeChange()">
+          <option value="solo">Solo (1-on-1)</option>
+          <option value="group">Group</option>
+        </select>
+      </div>
+      <div id="cap-field">
+        <label for="new-cap">Group size</label>
+        <input id="new-cap" type="number" min="2" max="20" value="4" />
+      </div>
+    </div>
+    <div id="add-err" class="form-error" style="display:none;"></div>
+    <button class="reserve" onclick="addSlot()">Add session</button>
+  </div>`;
+
+  html += `<div style="margin-top:34px;"><h3 style="font-size:15px;margin-bottom:10px;">All sessions</h3>`;
+  if(slots.length === 0){
+    html += `<div class="empty-state">No sessions posted yet.</div>`;
+  }
+  slots.forEach(slot=>{
+    const typeLabel = slot.type === 'solo' ? 'Solo' : 'Group';
+    html += `<div class="slot-admin-row">
+      <div class="slot-admin-head">
+        <div>
+          <strong>${formatDate(slot.date)}</strong> · ${formatTime(slot.time)} · ${typeLabel} · ${slot.signups.length}/${slot.capacity} filled
+        </div>
+        <div>
+          <button class="link-btn" onclick="toggleRoster('${slot.id}')">${expandedRosterId===slot.id?'Hide roster':'View roster'}</button>
+          &nbsp;&nbsp;
+          <button class="delete-slot" onclick="deleteSlot('${slot.id}')">Delete</button>
+        </div>
+      </div>`;
+    if(expandedRosterId === slot.id){
+      if(slot.signups.length === 0){
+        html += `<div class="top-note">No one has signed up yet.</div>`;
+      }else{
+        html += `<ul class="roster">`;
+        slot.signups.forEach((s,idx)=>{
+          html += `<li><span>${esc(s.name)} — ${esc(s.email)}</span><button onclick="removeSignup('${slot.id}', ${idx})">Remove</button></li>`;
+        });
+        html += `</ul>`;
+      }
+    }
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  el.innerHTML = html;
+}
+
+function onTypeChange(){
+  const type = document.getElementById('new-type').value;
+  document.getElementById('cap-field').style.display = type === 'solo' ? 'none' : '';
+}
+
+function tryAdminLogin(){
+  const val = document.getElementById('passcode').value;
+  if(val === ADMIN_PASSCODE){
+    isAdmin = true;
+    renderAdminView();
+  }else{
+    document.getElementById('admin-err').style.display = 'block';
+  }
+}
+
+async function addSlot(){
+  const date = document.getElementById('new-date').value;
+  const time = document.getElementById('new-time').value;
+  const type = document.getElementById('new-type').value;
+  const capInput = document.getElementById('new-cap');
+  const errEl = document.getElementById('add-err');
+
+  if(!date || !time){
+    errEl.textContent = 'Please choose both a date and a time.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const capacity = type === 'solo' ? 1 : Math.max(2, parseInt(capInput.value,10) || 4);
+
+  await loadSchedule();
+  schedule.slots.push({ id: uid(), date, time, type, capacity, signups: [] });
+  try{
+    await saveSchedule();
+  }catch(e){
+    errEl.textContent = 'Could not save this session. Please try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+  renderAdminView();
+}
+
+async function deleteSlot(slotId){
+  await loadSchedule();
+  schedule.slots = schedule.slots.filter(s=>s.id !== slotId);
+  await saveSchedule();
+  if(expandedRosterId === slotId) expandedRosterId = null;
+  renderAdminView();
+}
+
+function toggleRoster(slotId){
+  expandedRosterId = (expandedRosterId === slotId) ? null : slotId;
+  renderAdminView();
+}
+
+async function removeSignup(slotId, idx){
+  await loadSchedule();
+  const slot = schedule.slots.find(s=>s.id===slotId);
+  if(slot){
+    slot.signups.splice(idx,1);
+    await saveSchedule();
+  }
+  renderAdminView();
+}
+
+function render(){
+  if(currentView === 'book') renderBookView();
+  else renderAdminView();
+}
+
+async function init(){
+  document.getElementById('view-book').innerHTML = '<div class="loading">Loading sessions…</div>';
+  await loadSchedule();
+  render();
+  setInterval(async ()=>{
+    if(openBookingSlotId) return; // don't yank the booking form away mid-entry
+    if(currentView === 'admin') return; // don't wipe the admin's in-progress form
+    await loadSchedule();
+    render();
+  }, 12000);
+}
+
+init();
+</script>
+</body>
+</html>
